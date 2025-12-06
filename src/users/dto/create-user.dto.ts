@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
+
 export class createUserDTO {
   @IsNotEmpty()
   name: string;

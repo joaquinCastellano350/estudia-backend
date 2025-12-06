@@ -43,13 +43,13 @@ create table public.document_chunk (
   chunk_index integer not null,
   content text not null,
   metadata jsonb,
-  embedding vector(1536),              -- text-embedding-3-small OpenAI -> actualizable
+  embedding extensions.vector(1536),              -- text-embedding-3-small OpenAI -> actualizable
   created_at timestamptz not null default now()
 );
 
 create index document_chunk_document_idx on public.document_chunk(document_id);
 create index document_chunk_embedding_idx on public.document_chunk
-  using ivfflat (embedding vector_cosine_ops)
+  using ivfflat (embedding extensions.vector_cosine_ops)
   with (lists = 100);
 
 -- CHATS
