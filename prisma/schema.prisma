@@ -28,37 +28,24 @@ model chat_context {
 }
 
 model document {
-  id                     String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id                String           @db.Uuid
-  folder_id              String?          @db.Uuid
+  id                     String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                String          @db.Uuid
+  folder_id              String?         @db.Uuid
   name                   String
   description            String?
   storage_key            String
   share_token            String?
-  share_token_expires_at DateTime?        @db.Timestamptz(6)
-  visibility             String           @default("PRIVATE")
+  share_token_expires_at DateTime?       @db.Timestamptz(6)
+  visibility             visibility_enum @default(PRIVATE)
   mime_type              String
   size_bytes             BigInt
-  processing_status      String           @default("PENDING")
-  created_at             DateTime         @default(now()) @db.Timestamptz(6)
+  created_at             DateTime        @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime        @default(now()) @db.Timestamptz(6)
+  annotation             annotation[]
   chat_context           chat_context[]
-  folder                 folder?          @relation(fields: [folder_id], references: [id], onUpdate: NoAction)
-  user                   user             @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  document_chunk         document_chunk[]
-}
-
-model document_chunk {
-  id          String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  document_id String                 @db.Uuid
-  chunk_index Int
-  content     String
-  metadata    Json?
-  embedding   Unsupported("vector")?
-  created_at  DateTime               @default(now()) @db.Timestamptz(6)
-  document    document               @relation(fields: [document_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@index([document_id], map: "document_chunk_document_idx")
-  @@index([embedding])
+  folder                 folder?         @relation(fields: [folder_id], references: [id], onUpdate: NoAction)
+  user                   user            @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  resource               resource[]
 }
 
 model folder {
@@ -86,13 +73,109 @@ model message {
 }
 
 model user {
-  id              String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name            String
-  lastname        String
-  email           String     @unique
-  hashed_password String
-  created_at      DateTime   @default(now()) @db.Timestamptz(6)
-  chat            chat[]
-  document        document[]
-  folder          folder[]
+  id                                                    String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                                                  String
+  lastname                                              String
+  email                                                 String              @unique
+  hashed_password                                       String
+  created_at                                            DateTime            @default(now()) @db.Timestamptz(6)
+  annotation                                            annotation[]
+  chat                                                  chat[]
+  document                                              document[]
+  folder                                                folder[]
+  resource                                              resource[]
+  shared_annotation_shared_annotation_owner_idTouser    shared_annotation[] @relation("shared_annotation_owner_idTouser")
+  shared_annotation_shared_annotation_target_userTouser shared_annotation[] @relation("shared_annotation_target_userTouser")
+}
+
+model annotation {
+  id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  document_id          String?                @db.Uuid
+  user_id              String?                @db.Uuid
+  title                String?
+  content              String?
+  kind                 annotation_kind_enum   @default(NOTE)
+  visibility           visibility_enum        @default(PRIVATE)
+  tags                 String[]
+  created_at           DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime               @default(now()) @db.Timestamptz(6)
+  document             document?              @relation(fields: [document_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user                 user?                  @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  reference_annotation reference_annotation[]
+  resource             resource[]
+  shared_annotation    shared_annotation[]
+
+  @@index([document_id], map: "annotation_document_idx")
+  @@index([user_id], map: "annotation_user_idx")
+}
+
+model reference_annotation {
+  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  annotation_id String     @db.Uuid
+  page          Int?
+  cite          String?
+  coordinates   Json?
+  created_at    DateTime   @default(now()) @db.Timestamptz(6)
+  annotation    annotation @relation(fields: [annotation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([annotation_id], map: "reference_annotation_annotation_idx")
+}
+
+model resource {
+  id            String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  document_id   String?            @db.Uuid
+  annotation_id String?            @db.Uuid
+  user_id       String?            @db.Uuid
+  type          resource_type_enum
+  storage_path  String?
+  external_url  String?
+  created_at    DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime           @default(now()) @db.Timestamptz(6)
+  annotation    annotation?        @relation(fields: [annotation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  document      document?          @relation(fields: [document_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user          user?              @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([annotation_id], map: "resource_annotation_idx")
+  @@index([document_id], map: "resource_document_idx")
+  @@index([user_id], map: "resource_user_idx")
+}
+
+model shared_annotation {
+  id                                       String                            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  annotation_id                            String                            @db.Uuid
+  owner_id                                 String?                           @db.Uuid
+  target_user                              String?                           @db.Uuid
+  permission                               shared_annotation_permission_enum @default(READ)
+  created_at                               DateTime                          @default(now()) @db.Timestamptz(6)
+  updated_at                               DateTime                          @default(now()) @db.Timestamptz(6)
+  annotation                               annotation                        @relation(fields: [annotation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user_shared_annotation_owner_idTouser    user?                             @relation("shared_annotation_owner_idTouser", fields: [owner_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user_shared_annotation_target_userTouser user?                             @relation("shared_annotation_target_userTouser", fields: [target_user], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([owner_id])
+  @@index([target_user])
+}
+
+enum annotation_kind_enum {
+  NOTE
+  HIGHLIGHT
+  QUESTION
+  TASK
+}
+
+enum resource_type_enum {
+  IMAGE
+  LINK
+  FILE
+}
+
+enum shared_annotation_permission_enum {
+  READ
+  WRITE
+}
+
+enum visibility_enum {
+  PRIVATE
+  PUBLIC
+  PUBLIC_LINK
 }

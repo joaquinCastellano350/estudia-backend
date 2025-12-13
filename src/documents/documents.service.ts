@@ -70,7 +70,6 @@ export class DocumentsService {
         visibility: 'PRIVATE',
         mime_type: file.mimetype,
         size_bytes: file.size,
-        processing_status: 'PENDING',
       },
     });
     return this.serializeDocument(document);
