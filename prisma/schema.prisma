@@ -152,8 +152,10 @@ model shared_annotation {
   user_shared_annotation_owner_idTouser    user?                             @relation("shared_annotation_owner_idTouser", fields: [owner_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   user_shared_annotation_target_userTouser user?                             @relation("shared_annotation_target_userTouser", fields: [target_user], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
+  @@unique([annotation_id, target_user], map: "shared_annotation_annotation_target_unique")
   @@index([owner_id])
   @@index([target_user])
+  @@index([annotation_id, target_user], map: "shared_annotation_unique_idx")
 }
 
 enum annotation_kind_enum {
