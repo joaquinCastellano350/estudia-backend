@@ -8,6 +8,7 @@ import { FoldersModule } from './folders/folders.module.js';
 import { SupabaseModule } from './supabase/supabase.module.js';
 import { DocumentsModule } from './documents/documents.module.js';
 import { StorageModule } from './storage/storage.module.js';
+import { AnnotationsModule } from './annotations/annotations.module.js';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { StorageModule } from './storage/storage.module.js';
     SupabaseModule,
     DocumentsModule,
     StorageModule,
+    AnnotationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
