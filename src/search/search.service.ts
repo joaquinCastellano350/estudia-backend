@@ -36,7 +36,9 @@ export class SearchService {
         a.id,
         a.document_id as "documentId",
         a.title,
-        ts_headline('spanish', coalesce(a.content, ''), plainto_tsquery('spanish', ${q}),  'MaxWords=25, MinWords=10, ShortWord=2, HighlightAll=true') as snippet,
+        ts_headline('spanish', coalesce(a.content,''), plainto_tsquery('spanish', ${q}),
+          'MaxWords=25, MinWords=10, ShortWord=2, HighlightAll=true'
+        ) as snippet,
         ts_rank(a.search_vector, plainto_tsquery('spanish', ${q})) as rank,
         a.created_at::text as "createdAt"
         from public.annotation a
@@ -50,7 +52,9 @@ export class SearchService {
         'document' as type,
         d.id,
         d.name,
-        ts_headline('spanish', coalesce(d.description, ''), plainto_tsquery('spanish', ${q}),  'MaxWords=25, MinWords=10, ShortWord=2, HighlightAll=true') as snippet,
+        ts_headline('spanish', coalesce(d.name,''), plainto_tsquery('spanish', ${q}),
+          'MaxWords=25, MinWords=10, ShortWord=2, HighlightAll=true'
+        ) as snippet,
         ts_rank(d.search_vector, plainto_tsquery('spanish', ${q})) as rank,
         d.created_at::text as "createdAt"
         from public.document d
