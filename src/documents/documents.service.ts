@@ -86,6 +86,13 @@ export class DocumentsService {
     const document = await this.ensureDocumentOwner(documentId, userId);
     return this.serializeDocument(document);
   }
+  async downloadDocument(userId: string, documentId: string) {
+    const document = await this.ensureDocumentOwner(documentId, userId);
+    const { url, expiresAt } = await this.storage.getDownloadUrl(
+      document.storage_key,
+    );
+    return { url, expiresAt };
+  }
   async updateDocument(
     userId: string,
     documentId: string,
