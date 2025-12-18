@@ -9,6 +9,7 @@ import { SupabaseModule } from './supabase/supabase.module.js';
 import { DocumentsModule } from './documents/documents.module.js';
 import { StorageModule } from './storage/storage.module.js';
 import { AnnotationsModule } from './annotations/annotations.module.js';
+import { SearchModule } from './search/search.module.js';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { AnnotationsModule } from './annotations/annotations.module.js';
     DocumentsModule,
     StorageModule,
     AnnotationsModule,
+    SearchModule,
   ],
   controllers: [AppController],
   providers: [AppService],
