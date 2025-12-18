@@ -40,4 +40,15 @@ export class StorageService {
       throw new BadRequestException('Error deleting file from storage');
     }
   }
+  async getDownloadUrl(storageKey: string) {
+    const client = this.supabase.getClient();
+    const { data, error } = await client.storage
+      .from(this.bucket)
+      .createSignedUrl(storageKey, 300);
+    if (error) {
+      console.error(error);
+      throw new BadRequestException('Error creating signed URL');
+    }
+    return { url: data.signedUrl, expiresAt: Date.now() + 300 };
+  }
 }

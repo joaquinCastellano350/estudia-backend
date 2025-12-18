@@ -41,7 +41,14 @@ export class DocumentsController {
     const userId = req.user.id;
     return this.documentsService.findAllDocuments(userId, folderId);
   }
-
+  @Get(':id/download')
+  downloadDocument(
+    @Req() req: Request & { user: { id: string; email: string } },
+    @Param('id') id: string,
+  ) {
+    const userId = req.user.id;
+    return this.documentsService.downloadDocument(userId, id);
+  }
   @Get(':id')
   getDocumentById(
     @Req() req: Request & { user: { id: string; email: string } },
